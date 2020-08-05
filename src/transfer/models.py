@@ -2,6 +2,7 @@ from datetime import datetime, date
 from decimal import Decimal
 from typing import Optional
 
+from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.db.models import F
 
@@ -87,3 +88,15 @@ class ScheduledPayment(models.Model):
             scheduled_date=scheduled_date if scheduled_date else datetime.now().date(),
             is_recurring=is_recurring
         )
+
+    def run_scheduled_payment(self) -> None:
+        self.transfer = Transfer.do_transfer(self.from_account,
+                                             self.to_account,
+                                             self.amount)
+        self.save()
+        if self.is_recurring:
+            next_payment_date = self.scheduled_date + relativedelta(months=+1)
+            ScheduledPayment.schedule_payment(self.from_account,
+                                              self.to_account,
+                                              self.amount,
+                                              next_payment_date)
