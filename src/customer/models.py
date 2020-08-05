@@ -8,5 +8,9 @@ class Customer(models.Model):
         'account.Account',
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         default=None
     )
+
+    def __str__(self):
+        return self.full_name

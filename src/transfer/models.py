@@ -100,3 +100,7 @@ class ScheduledPayment(models.Model):
                                               self.to_account,
                                               self.amount,
                                               next_payment_date)
+
+    @property
+    def is_paid(self):
+        return self.transfer is not None
