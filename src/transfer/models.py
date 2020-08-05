@@ -1,4 +1,7 @@
+from datetime import datetime, date
 from decimal import Decimal
+from typing import Optional
+
 from django.db import models
 from django.db.models import F
 
@@ -14,6 +17,10 @@ class InsufficientFunds(Exception):
 
 
 class InvalidAmount(Exception):
+    pass
+
+
+class InvalidScheduledDate(Exception):
     pass
 
 
@@ -50,4 +57,33 @@ class Transfer(models.Model):
             from_account=from_account,
             to_account=to_account,
             amount=amount
+        )
+
+
+class ScheduledPayment(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    from_account = models.ForeignKey(Account, models.CASCADE, related_name='scheduled_transfers_in')
+    to_account = models.ForeignKey(Account, models.CASCADE, related_name='scheduled_transfers_out')
+    amount = models.DecimalField(max_digits=18, decimal_places=2)
+
+    scheduled_date = models.DateField(blank=True)
+    is_recurring = models.BooleanField(default=True)
+
+    transfer = models.ForeignKey(Transfer, models.CASCADE, related_name='scheduled_by', null=True)
+
+    @staticmethod
+    def schedule_payment(from_account: Account, to_account: Account, amount: Decimal,
+                         scheduled_date: Optional[date], is_recurring: bool = True) -> object:
+        Transfer.validate_transaction_params(from_account, to_account, amount)
+
+        if scheduled_date and scheduled_date < datetime.now().date():
+            raise InvalidScheduledDate()
+
+        return ScheduledPayment.objects.create(
+            from_account=from_account,
+            to_account=to_account,
+            amount=amount,
+            scheduled_date=scheduled_date if scheduled_date else datetime.now().date(),
+            is_recurring=is_recurring
         )
