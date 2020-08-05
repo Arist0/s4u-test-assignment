@@ -84,3 +84,6 @@ class TransferTest(TestCase):
             to_account=self.account2,
             amount=1000,
         ).exists())
+
+
+# todo: Add tests for ScheduledPayments
