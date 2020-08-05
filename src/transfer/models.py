@@ -41,7 +41,7 @@ class Transfer(models.Model):
             raise InvalidAmount()
 
     @staticmethod
-    def do_transfer(from_account: Account, to_account: Account, amount: Decimal) -> object:
+    def do_transfer(from_account: Account, to_account: Account, amount: Decimal):
         Transfer.validate_transaction_params(from_account, to_account, amount)
         is_updated = Account.objects.filter(
             id=from_account.id,
@@ -75,7 +75,7 @@ class ScheduledPayment(models.Model):
 
     @staticmethod
     def schedule_payment(from_account: Account, to_account: Account, amount: Decimal,
-                         scheduled_date: Optional[date], is_recurring: bool = True) -> object:
+                         scheduled_date: Optional[date] = None, is_recurring: bool = True):
         Transfer.validate_transaction_params(from_account, to_account, amount)
 
         if scheduled_date and scheduled_date < datetime.now().date():
